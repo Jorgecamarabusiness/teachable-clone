@@ -1,16 +1,6 @@
-"use client";
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { CourseBarChart } from "./CourseBarChart";
 
 const meses = ["Feb", "Mar", "Abr", "May", "Jun", "Jul"];
 
@@ -131,38 +121,7 @@ export default function EstadisticasPage() {
                 <p className="mb-2 text-sm text-black/70">
                   Compras nuevas por mes
                 </p>
-                <div className="h-56 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={item.data}>
-                      <CartesianGrid stroke="#00000020" vertical={false} />
-                      <XAxis
-                        dataKey="mes"
-                        stroke="#000000"
-                        tick={{ fill: "#000000", fontSize: 12 }}
-                        axisLine={{ stroke: "#000000" }}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        stroke="#000000"
-                        tick={{ fill: "#000000", fontSize: 12 }}
-                        axisLine={{ stroke: "#000000" }}
-                        tickLine={false}
-                        width={32}
-                      />
-                      <Tooltip
-                        cursor={{ fill: "#00000010" }}
-                        contentStyle={{
-                          background: "#ffffff",
-                          border: "1px solid #000000",
-                          borderRadius: 0,
-                          fontSize: 12,
-                        }}
-                        labelStyle={{ color: "#000000", fontWeight: 600 }}
-                      />
-                      <Bar dataKey="compras" fill="#000000" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <CourseBarChart data={item.data} />
               </div>
             </div>
           ))}
