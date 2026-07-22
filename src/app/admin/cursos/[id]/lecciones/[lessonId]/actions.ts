@@ -3,35 +3,12 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/auth/requireAdmin";
 import type { ContentBlock } from "@/types";
 
 type ActionResult = {
   error: string | null;
 };
-
-async function requireAdmin(
-  supabase: Awaited<ReturnType<typeof createClient>>
-): Promise<ActionResult> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "Debes iniciar sesión para editar esta lección." };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single();
-
-  if (!profile?.is_admin) {
-    return { error: "No tienes permisos de administrador." };
-  }
-
-  return { error: null };
-}
 
 export async function updateLessonBlocksAction(
   lessonId: string,

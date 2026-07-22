@@ -1,17 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { LessonEditorView } from "./LessonEditorView";
 import type { ContentBlock } from "@/types";
 
 function NotFound({ message }: { message: string }) {
   return (
-    <div className="flex flex-1 flex-col bg-background text-foreground">
-      <Header />
-      <div className="mx-auto flex flex-1 items-center px-6 py-24">
-        <p className="text-sm text-muted-foreground">{message}</p>
-      </div>
-      <Footer />
+    <div className="flex items-center px-6 py-24">
+      <p className="text-sm text-muted-foreground">{message}</p>
     </div>
   );
 }
@@ -63,14 +57,8 @@ export default async function LessonEditorPage({
   };
 
   return (
-    <div className="flex flex-1 flex-col bg-background text-foreground">
-      <Header />
-
-      <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
-        <LessonEditorView course={course} section={section} lesson={lesson} />
-      </div>
-
-      <Footer />
+    <div className="mx-auto w-full max-w-3xl px-6 py-12">
+      <LessonEditorView course={course} section={section} lesson={lesson} />
     </div>
   );
 }

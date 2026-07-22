@@ -29,12 +29,32 @@ export default async function CursoDetallePage({
 
   const { data: course } = await supabase
     .from("courses")
-    .select("id, title, price, long_description, learning_points")
+    .select("id, title, price, long_description, learning_points, status")
     .eq("id", id)
     .maybeSingle();
 
   if (!course) {
     return <NotFound />;
+  }
+
+  if (course.status !== "published") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    let isAdmin = false;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin")
+        .eq("id", user.id)
+        .single();
+      isAdmin = profile?.is_admin ?? false;
+    }
+
+    if (!isAdmin) {
+      return <NotFound />;
+    }
   }
 
   const longDescription = (course.long_description ?? "")

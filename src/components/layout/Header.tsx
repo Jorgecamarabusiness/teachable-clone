@@ -9,17 +9,15 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   let name: string | null = null;
-  let isAdmin = false;
 
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, is_admin")
+      .select("name")
       .eq("id", user.id)
       .single();
 
     name = profile?.name ?? null;
-    isAdmin = profile?.is_admin ?? false;
   }
 
   return (
@@ -31,22 +29,6 @@ export async function Header() {
           <Link href="/" className="hover:underline">
             Inicio
           </Link>
-          <Link href="/cursos" className="hover:underline">
-            Cursos
-          </Link>
-          {isAdmin && (
-            <>
-              <Link href="/admin/cursos" className="hover:underline">
-                Gestionar cursos
-              </Link>
-              <Link href="/admin/usuarios" className="hover:underline">
-                Usuarios
-              </Link>
-              <Link href="/admin/estadisticas" className="hover:underline">
-                Estadísticas
-              </Link>
-            </>
-          )}
         </nav>
 
         {user ? (
@@ -64,17 +46,12 @@ export async function Header() {
             </form>
           </div>
         ) : (
-          <div className="flex items-center gap-4 text-sm font-medium">
-            <Link href="/login" className="hover:underline">
-              Iniciar sesión
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-full border border-border px-5 py-2 transition-colors hover:bg-foreground hover:text-background"
-            >
-              Registrarse
-            </Link>
-          </div>
+          <Link
+            href="/login"
+            className="rounded-full border border-border px-5 py-2 text-sm font-medium transition-colors hover:bg-foreground hover:text-background"
+          >
+            Iniciar sesión
+          </Link>
         )}
       </div>
     </header>

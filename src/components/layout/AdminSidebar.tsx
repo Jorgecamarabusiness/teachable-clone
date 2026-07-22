@@ -1,0 +1,169 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M15 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"
+      />
+      <circle cx="9" cy="7" r="3" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 11a3 3 0 1 0 0-6" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 19v-1a4 4 0 0 0-3-3.87"
+      />
+    </svg>
+  );
+}
+
+function HomeIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className={className}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 11.5 12 4l9 7.5" />
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"
+      />
+    </svg>
+  );
+}
+
+function BookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className={className}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" />
+    </svg>
+  );
+}
+
+function ArrowLeftIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      className={className}
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 12H5" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
+type AdminSidebarProps = {
+  adminName: string;
+  course: { id: string; title: string } | null;
+};
+
+export function AdminSidebar({ adminName, course }: AdminSidebarProps) {
+  const [expanded, setExpanded] = useState(true);
+  const pathname = usePathname();
+
+  const navItems = [
+    { href: "/admin", label: "Inicio", Icon: HomeIcon },
+    { href: "/admin/usuarios", label: "Usuarios", Icon: UsersIcon },
+    ...(course
+      ? [{ href: `/admin/cursos/${course.id}`, label: course.title, Icon: BookIcon }]
+      : []),
+  ];
+
+  return (
+    <aside
+      className={`flex shrink-0 flex-col border-r border-border bg-background transition-[width] duration-200 ${
+        expanded ? "w-64" : "w-16"
+      }`}
+    >
+      <div className="flex items-center justify-between border-b border-border px-4 py-5">
+        {expanded && (
+          <p className="truncate text-sm font-semibold">Bienvenido {adminName}</p>
+        )}
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted"
+          aria-label={expanded ? "Contraer menú" : "Expandir menú"}
+        >
+          <ChevronIcon
+            className={`h-4 w-4 transition-transform ${expanded ? "" : "rotate-180"}`}
+          />
+        </button>
+      </div>
+
+      <nav className="flex flex-1 flex-col gap-1 px-2 py-4">
+        {navItems.map(({ href, label, Icon }) => {
+          const active = pathname === href;
+          return (
+            <Link
+              key={href}
+              href={href}
+              title={expanded ? undefined : label}
+              className={`flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors ${
+                active ? "bg-foreground text-background" : "hover:bg-muted"
+              }`}
+            >
+              <Icon className="h-5 w-5 shrink-0" />
+              {expanded && <span className="truncate">{label}</span>}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="border-t border-border px-2 py-4">
+        <Link
+          href="/"
+          title={expanded ? undefined : "Volver al inicio"}
+          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ArrowLeftIcon className="h-5 w-5 shrink-0" />
+          {expanded && <span className="truncate">Volver al inicio</span>}
+        </Link>
+      </div>
+    </aside>
+  );
+}

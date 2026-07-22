@@ -7,10 +7,30 @@ import { createClient } from "@/lib/supabase/server";
 export default async function CursosPage() {
   const supabase = await createClient();
 
-  const { data: courses } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let isAdmin = false;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    isAdmin = profile?.is_admin ?? false;
+  }
+
+  let coursesQuery = supabase
     .from("courses")
     .select("id, title, description, price")
     .order("created_at", { ascending: true });
+
+  if (!isAdmin) {
+    coursesQuery = coursesQuery.eq("status", "published");
+  }
+
+  const { data: courses } = await coursesQuery;
 
   return (
     <div className="flex flex-1 flex-col bg-background text-foreground">

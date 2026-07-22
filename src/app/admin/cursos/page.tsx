@@ -1,7 +1,5 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { Card } from "@/components/ui/Card";
 import { buttonClassName } from "@/components/ui/Button";
 
@@ -35,10 +33,7 @@ export default async function AdminCoursesPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-background text-foreground">
-      <Header />
-
-      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
+    <div className="mx-auto w-full max-w-5xl px-6 py-12">
         <h1 className="text-2xl font-bold tracking-tight">Cursos</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Gestiona el currículum de cada curso.
@@ -74,9 +69,6 @@ export default async function AdminCoursesPage() {
             ))
           )}
         </div>
-      </div>
-
-      <Footer />
     </div>
   );
 }

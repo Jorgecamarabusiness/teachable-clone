@@ -1,5 +1,3 @@
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { CourseBarChart } from "./CourseBarChart";
 import { createClient } from "@/lib/supabase/server";
 
@@ -133,10 +131,7 @@ export default async function EstadisticasPage() {
         );
 
   return (
-    <div className="flex flex-1 flex-col bg-background text-foreground">
-      <Header />
-
-      <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
+    <div className="mx-auto w-full max-w-5xl px-6 py-12">
         <h1 className="text-2xl font-bold tracking-tight">Estadísticas</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Rendimiento de cada curso publicado.
@@ -215,9 +210,6 @@ export default async function EstadisticasPage() {
             ))}
           </div>
         )}
-      </div>
-
-      <Footer />
     </div>
   );
 }
