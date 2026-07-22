@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Button } from "@/components/ui/Button";
 import { loginAction, type LoginState } from "./actions";
 
 const initialState: LoginState = { error: null };
@@ -23,7 +24,7 @@ export function LoginForm() {
           type="email"
           placeholder="tu@email.com"
           required
-          className="rounded-md border border-black px-4 py-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black"
+          className="rounded-md border border-border px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -37,7 +38,7 @@ export function LoginForm() {
           type="password"
           placeholder="••••••••"
           required
-          className="rounded-md border border-black px-4 py-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black"
+          className="rounded-md border border-border px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -47,13 +48,9 @@ export function LoginForm() {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" disabled={pending} className="mt-2">
         {pending ? "Iniciando sesión..." : "Iniciar sesión"}
-      </button>
+      </Button>
     </form>
   );
 }

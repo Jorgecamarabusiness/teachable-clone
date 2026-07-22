@@ -7,7 +7,7 @@ export function TextBlock({ block }: { block: TextBlockType }) {
       {block.title ? (
         <h3 className="text-sm font-semibold">{block.title}</h3>
       ) : null}
-      <div className="mt-2 flex flex-col gap-3 text-sm leading-relaxed text-black/80">
+      <div className="mt-2 flex flex-col gap-3 text-sm leading-relaxed text-foreground/80">
         {block.content.split("\n\n").map((paragraph, index) => (
           <p key={index}>{paragraph}</p>
         ))}

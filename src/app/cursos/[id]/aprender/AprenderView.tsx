@@ -84,8 +84,8 @@ export function AprenderView({
   }
 
   return (
-    <div className="flex h-screen flex-col bg-white text-black">
-      <div className="flex items-center justify-between border-b border-black px-6 py-4">
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      <div className="flex items-center justify-between border-b border-border px-6 py-4">
         <Link
           href={`/cursos/${course.id}`}
           className="text-sm font-medium hover:underline"
@@ -96,16 +96,16 @@ export function AprenderView({
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-80 shrink-0 overflow-y-auto border-r border-black p-6">
+        <aside className="w-80 shrink-0 overflow-y-auto border-r border-border p-6">
           <h1 className="text-lg font-bold leading-snug">{course.title}</h1>
 
           <div className="mt-4">
-            <p className="text-xs font-medium text-black/70">
+            <p className="text-xs font-medium text-muted-foreground">
               {progress}% completado
             </p>
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-black/10">
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full bg-black transition-all"
+                className="h-full bg-foreground transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -113,7 +113,7 @@ export function AprenderView({
 
           {sections.map((section) => (
             <div key={section.id} className="mt-6">
-              <h2 className="text-xs font-semibold uppercase tracking-wide text-black/50">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {section.title}
               </h2>
               <ul className="mt-2 flex flex-col gap-1">
@@ -127,7 +127,9 @@ export function AprenderView({
                       <li key={lesson.id}>
                         <div
                           className={`flex items-center gap-3 rounded-md px-2 py-2 transition-colors ${
-                            isActive ? "bg-black text-white" : "hover:bg-black/5"
+                            isActive
+                              ? "bg-foreground text-background"
+                              : "hover:bg-muted"
                           }`}
                         >
                           <button
@@ -140,10 +142,10 @@ export function AprenderView({
                             }
                             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
                               isCompleted
-                                ? "border-black bg-black text-white"
+                                ? "border-foreground bg-foreground text-background"
                                 : isActive
-                                  ? "border-white"
-                                  : "border-black/40"
+                                  ? "border-background"
+                                  : "border-border"
                             }`}
                           >
                             {isCompleted ? "✓" : ""}
@@ -159,7 +161,9 @@ export function AprenderView({
                             {lesson.duration ? (
                               <span
                                 className={`block text-xs ${
-                                  isActive ? "text-white/70" : "text-black/50"
+                                  isActive
+                                    ? "text-background/70"
+                                    : "text-muted-foreground"
                                 }`}
                               >
                                 {formatDuration(lesson.duration)}
@@ -178,7 +182,7 @@ export function AprenderView({
         <main className="flex-1 overflow-y-auto p-8">
           {activeLesson ? (
             <div className="mx-auto max-w-3xl">
-              <p className="text-xs font-semibold uppercase tracking-wide text-black/50">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Lección {activeIndex + 1} de {flatLessons.length}
               </p>
               <h2 className="mt-1 text-2xl font-bold tracking-tight">
@@ -202,7 +206,7 @@ export function AprenderView({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-black/70">
+            <p className="text-sm text-muted-foreground">
               Este curso todavía no tiene lecciones.
             </p>
           )}

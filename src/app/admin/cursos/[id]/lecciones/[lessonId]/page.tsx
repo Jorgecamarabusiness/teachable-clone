@@ -6,10 +6,10 @@ import type { ContentBlock } from "@/types";
 
 function NotFound({ message }: { message: string }) {
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
       <div className="mx-auto flex flex-1 items-center px-6 py-24">
-        <p className="text-sm text-black/70">{message}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
       </div>
       <Footer />
     </div>
@@ -63,7 +63,7 @@ export default async function LessonEditorPage({
   };
 
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
 
       <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">

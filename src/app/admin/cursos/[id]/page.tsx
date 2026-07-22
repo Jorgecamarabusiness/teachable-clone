@@ -7,10 +7,10 @@ import { createLessonAction } from "./actions";
 
 function NotFound({ message }: { message: string }) {
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
       <div className="mx-auto flex flex-1 items-center px-6 py-24">
-        <p className="text-sm text-black/70">{message}</p>
+        <p className="text-sm text-muted-foreground">{message}</p>
       </div>
       <Footer />
     </div>
@@ -52,7 +52,7 @@ export default async function CourseCurriculumPage({
   const lessons = lessonsData ?? [];
 
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
 
       <div className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
@@ -69,7 +69,7 @@ export default async function CourseCurriculumPage({
 
         <div className="mt-8 flex flex-col gap-4">
           {sections.length === 0 ? (
-            <p className="text-sm text-black/50">
+            <p className="text-sm text-muted-foreground">
               Este curso todavía no tiene secciones.
             </p>
           ) : (
@@ -81,19 +81,19 @@ export default async function CourseCurriculumPage({
               return (
                 <details
                   key={section.id}
-                  className="group border border-black"
+                  className="group overflow-hidden rounded-lg border border-border"
                   open
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-4 font-semibold">
                     {section.title}
-                    <span className="text-black/40 transition-transform group-open:rotate-180">
+                    <span className="text-muted-foreground transition-transform group-open:rotate-180">
                       ▾
                     </span>
                   </summary>
 
-                  <div className="border-t border-black/10">
+                  <div className="border-t border-border">
                     {sectionLessons.length === 0 ? (
-                      <p className="px-6 py-4 text-sm text-black/50">
+                      <p className="px-6 py-4 text-sm text-muted-foreground">
                         Esta sección todavía no tiene lecciones.
                       </p>
                     ) : (
@@ -101,7 +101,7 @@ export default async function CourseCurriculumPage({
                         <Link
                           key={lesson.id}
                           href={`/admin/cursos/${course.id}/lecciones/${lesson.id}`}
-                          className="block border-b border-black/10 px-6 py-3 text-sm font-medium transition-colors last:border-b-0 hover:bg-black/5"
+                          className="block border-b border-border px-6 py-3 text-sm font-medium transition-colors last:border-b-0 hover:bg-muted"
                         >
                           {lesson.title}
                         </Link>
@@ -114,7 +114,7 @@ export default async function CourseCurriculumPage({
                         section.id,
                         course.id
                       )}
-                      className="border-t border-black/10 px-6 py-4"
+                      className="border-t border-border px-6 py-4"
                     >
                       <Button type="submit" variant="outline">
                         + Nueva lección

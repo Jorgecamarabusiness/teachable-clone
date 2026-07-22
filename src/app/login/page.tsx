@@ -5,7 +5,7 @@ import { LoginForm } from "./LoginForm";
 
 export default function LoginPage() {
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
@@ -16,7 +16,7 @@ export default function LoginPage() {
 
           <LoginForm />
 
-          <p className="mt-8 text-center text-sm text-black/70">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             ¿No tienes una cuenta?{" "}
             <Link href="/register" className="font-medium underline">
               Regístrate

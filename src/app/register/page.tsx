@@ -5,7 +5,7 @@ import { RegisterForm } from "./RegisterForm";
 
 export default function RegisterPage() {
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
 
       <main className="flex flex-1 flex-col items-center justify-center px-6 py-24">
@@ -16,7 +16,7 @@ export default function RegisterPage() {
 
           <RegisterForm />
 
-          <p className="mt-8 text-center text-sm text-black/70">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             ¿Ya tienes una cuenta?{" "}
             <Link href="/login" className="font-medium underline">
               Inicia sesión

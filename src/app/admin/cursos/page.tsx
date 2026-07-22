@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Card } from "@/components/ui/Card";
+import { buttonClassName } from "@/components/ui/Button";
 
 export default async function AdminCoursesPage() {
   const supabase = await createClient();
@@ -34,18 +35,20 @@ export default async function AdminCoursesPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
 
       <div className="mx-auto w-full max-w-5xl flex-1 px-6 py-12">
         <h1 className="text-2xl font-bold tracking-tight">Cursos</h1>
-        <p className="mt-2 text-sm text-black/70">
+        <p className="mt-2 text-sm text-muted-foreground">
           Gestiona el currículum de cada curso.
         </p>
 
         <div className="mt-8 flex flex-col gap-4">
           {!courses || courses.length === 0 ? (
-            <p className="text-sm text-black/50">Todavía no hay cursos.</p>
+            <p className="text-sm text-muted-foreground">
+              Todavía no hay cursos.
+            </p>
           ) : (
             courses.map((course) => (
               <Card
@@ -56,14 +59,14 @@ export default async function AdminCoursesPage() {
                   <h2 className="text-lg font-semibold leading-snug">
                     {course.title}
                   </h2>
-                  <p className="mt-1 text-sm text-black/70">
+                  <p className="mt-1 text-sm text-muted-foreground">
                     ${course.price} · {sectionCounts.get(course.id) ?? 0}{" "}
                     secciones · {lessonCounts.get(course.id) ?? 0} lecciones
                   </p>
                 </div>
                 <Link
                   href={`/admin/cursos/${course.id}`}
-                  className="inline-flex items-center justify-center rounded-full border border-black px-6 py-3 text-sm font-semibold transition-colors hover:bg-black hover:text-white"
+                  className={buttonClassName("outline", "md")}
                 >
                   Editar currículum
                 </Link>

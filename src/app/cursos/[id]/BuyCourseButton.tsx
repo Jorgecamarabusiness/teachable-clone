@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/Button";
+
 export function BuyCourseButton() {
   return (
     <form
@@ -9,12 +11,9 @@ export function BuyCourseButton() {
         // TODO: conectar con Stripe/pasarela de pago
       }}
     >
-      <button
-        type="submit"
-        className="w-full rounded-full bg-black px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-black/80"
-      >
+      <Button type="submit" variant="primary" size="lg" className="w-full">
         Comprar curso
-      </button>
+      </Button>
     </form>
   );
 }

@@ -6,10 +6,10 @@ import type { ContentBlock, Lesson, Section } from "@/types";
 
 function NotFound() {
   return (
-    <div className="flex flex-1 flex-col bg-white text-black">
+    <div className="flex flex-1 flex-col bg-background text-foreground">
       <Header />
       <div className="mx-auto flex flex-1 items-center px-6 py-24">
-        <p className="text-sm text-black/70">Curso no encontrado.</p>
+        <p className="text-sm text-muted-foreground">Curso no encontrado.</p>
       </div>
       <Footer />
     </div>

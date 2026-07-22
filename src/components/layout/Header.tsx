@@ -23,7 +23,7 @@ export async function Header() {
   }
 
   return (
-    <header className="border-b border-black">
+    <header className="border-b border-border">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <span className="text-xl font-bold tracking-tight">Ivan Orgánico</span>
 
@@ -57,7 +57,7 @@ export async function Header() {
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="rounded-full border border-black px-5 py-2 text-sm font-medium transition-colors hover:bg-black hover:text-white"
+                className="rounded-full border border-border px-5 py-2 text-sm font-medium transition-colors hover:bg-foreground hover:text-background"
               >
                 Cerrar sesión
               </button>
@@ -70,7 +70,7 @@ export async function Header() {
             </Link>
             <Link
               href="/register"
-              className="rounded-full border border-black px-5 py-2 transition-colors hover:bg-black hover:text-white"
+              className="rounded-full border border-border px-5 py-2 transition-colors hover:bg-foreground hover:text-background"
             >
               Registrarse
             </Link>

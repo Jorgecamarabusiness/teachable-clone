@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Button } from "@/components/ui/Button";
 import { registerAction, type RegisterState } from "./actions";
 
 const initialState: RegisterState = { error: null };
@@ -23,7 +24,7 @@ export function RegisterForm() {
           type="text"
           placeholder="Tu nombre"
           required
-          className="rounded-md border border-black px-4 py-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black"
+          className="rounded-md border border-border px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -37,7 +38,7 @@ export function RegisterForm() {
           type="email"
           placeholder="tu@email.com"
           required
-          className="rounded-md border border-black px-4 py-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black"
+          className="rounded-md border border-border px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -52,7 +53,7 @@ export function RegisterForm() {
           placeholder="••••••••"
           required
           minLength={6}
-          className="rounded-md border border-black px-4 py-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black"
+          className="rounded-md border border-border px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -67,7 +68,7 @@ export function RegisterForm() {
           placeholder="••••••••"
           required
           minLength={6}
-          className="rounded-md border border-black px-4 py-3 text-sm outline-none placeholder:text-black/40 focus:ring-2 focus:ring-black"
+          className="rounded-md border border-border px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -77,13 +78,9 @@ export function RegisterForm() {
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="mt-2 rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
-      >
+      <Button type="submit" variant="primary" disabled={pending} className="mt-2">
         {pending ? "Creando cuenta..." : "Crear cuenta"}
-      </button>
+      </Button>
     </form>
   );
 }

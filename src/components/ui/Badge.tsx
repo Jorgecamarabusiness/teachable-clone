@@ -10,8 +10,8 @@ const baseStyles =
   "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold";
 
 const variantStyles: Record<BadgeVariant, string> = {
-  solid: "bg-black text-white",
-  outline: "border border-black text-black",
+  solid: "bg-foreground text-background",
+  outline: "border border-border text-foreground",
 };
 
 export function Badge({
