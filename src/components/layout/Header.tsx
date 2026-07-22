@@ -36,6 +36,9 @@ export async function Header() {
           </Link>
           {isAdmin && (
             <>
+              <Link href="/admin/cursos" className="hover:underline">
+                Gestionar cursos
+              </Link>
               <Link href="/admin/usuarios" className="hover:underline">
                 Usuarios
               </Link>

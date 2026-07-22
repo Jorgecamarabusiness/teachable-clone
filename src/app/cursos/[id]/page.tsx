@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { courses, getCourseById } from "@/data/courses";
+import { mockCourses as courses, getCourseById } from "@/lib/mock-data";
 import { BuyCourseButton } from "./BuyCourseButton";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 export function generateStaticParams() {
   return courses.map((course) => ({ id: course.id }));
@@ -64,7 +64,7 @@ export default async function CursoDetallePage({
 
             <div className="h-fit border border-black p-6 lg:sticky lg:top-8">
               <p className="text-sm text-black/70">Precio</p>
-              <p className="mt-1 text-4xl font-bold">{course.price}</p>
+              <p className="mt-1 text-4xl font-bold">${course.price}</p>
 
               <BuyCourseButton />
             </div>

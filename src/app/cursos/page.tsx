@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { courses } from "@/data/courses";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { mockCourses as courses } from "@/lib/mock-data";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 
 export default function CursosPage() {
   return (
@@ -35,7 +35,7 @@ export default function CursosPage() {
                   </h2>
                   <p className="text-sm text-black/70">{course.description}</p>
                   <div className="mt-auto flex items-center justify-between pt-4">
-                    <span className="text-xl font-bold">{course.price}</span>
+                    <span className="text-xl font-bold">${course.price}</span>
                     <Link
                       href={`/cursos/${course.id}`}
                       className="rounded-full border border-black px-4 py-2 text-sm font-medium transition-colors hover:bg-black hover:text-white"

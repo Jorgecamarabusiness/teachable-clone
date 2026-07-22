@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { courses } from "@/data/courses";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { getFeaturedCourses } from "@/lib/mock-data";
 
-const featuredCourses = courses.slice(0, 3);
+const featuredCourses = getFeaturedCourses(3);
 
 export default function Home() {
   return (
@@ -48,7 +48,7 @@ export default function Home() {
                     </h3>
                     <div className="mt-auto flex items-center justify-between">
                       <span className="text-xl font-bold">
-                        {course.price}
+                        ${course.price}
                       </span>
                       <Link
                         href={`/cursos/${course.id}`}

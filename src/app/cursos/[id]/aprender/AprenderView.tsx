@@ -1,0 +1,213 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
+import type { Lesson, Section } from "@/types";
+import { Button } from "@/components/ui/Button";
+import { VideoBlock } from "@/components/lesson-blocks/VideoBlock";
+import { TextBlock } from "@/components/lesson-blocks/TextBlock";
+
+type CourseWithContent = {
+  id: string;
+  title: string;
+  sections: Section[];
+};
+
+function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remaining = seconds % 60;
+  return `${minutes}:${remaining.toString().padStart(2, "0")}`;
+}
+
+export function AprenderView({
+  course,
+  initialLessonId,
+}: {
+  course: CourseWithContent;
+  initialLessonId?: string;
+}) {
+  const sections = useMemo(
+    () => [...course.sections].sort((a, b) => a.order - b.order),
+    [course.sections]
+  );
+
+  const flatLessons = useMemo<Lesson[]>(
+    () =>
+      sections.flatMap((section) =>
+        [...section.lessons].sort((a, b) => a.order - b.order)
+      ),
+    [sections]
+  );
+
+  const [activeLessonId, setActiveLessonId] = useState<string | null>(
+    () =>
+      (initialLessonId &&
+        flatLessons.find((lesson) => lesson.id === initialLessonId)?.id) ||
+      flatLessons[0]?.id ||
+      null
+  );
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(
+    new Set()
+  );
+
+  const activeIndex = flatLessons.findIndex((l) => l.id === activeLessonId);
+  const activeLesson = activeIndex >= 0 ? flatLessons[activeIndex] : null;
+  const isLastLesson = activeIndex === flatLessons.length - 1;
+
+  const progress =
+    flatLessons.length > 0
+      ? Math.round((completedLessonIds.size / flatLessons.length) * 100)
+      : 0;
+
+  function toggleCompleted(lessonId: string, event: React.MouseEvent) {
+    event.stopPropagation();
+    setCompletedLessonIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(lessonId)) {
+        next.delete(lessonId);
+      } else {
+        next.add(lessonId);
+      }
+      return next;
+    });
+  }
+
+  function completeAndContinue() {
+    if (!activeLesson) return;
+
+    setCompletedLessonIds((prev) => new Set(prev).add(activeLesson.id));
+
+    const nextLesson = flatLessons[activeIndex + 1];
+    if (nextLesson) {
+      setActiveLessonId(nextLesson.id);
+    }
+  }
+
+  return (
+    <div className="flex h-screen flex-col bg-white text-black">
+      <div className="flex items-center justify-between border-b border-black px-6 py-4">
+        <Link
+          href={`/cursos/${course.id}`}
+          className="text-sm font-medium hover:underline"
+        >
+          ← Volver a la ficha del curso
+        </Link>
+        <span className="text-sm font-semibold">{course.title}</span>
+      </div>
+
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="w-80 shrink-0 overflow-y-auto border-r border-black p-6">
+          <h1 className="text-lg font-bold leading-snug">{course.title}</h1>
+
+          <div className="mt-4">
+            <p className="text-xs font-medium text-black/70">
+              {progress}% completado
+            </p>
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-black/10">
+              <div
+                className="h-full bg-black transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+
+          {sections.map((section) => (
+            <div key={section.id} className="mt-6">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-black/50">
+                {section.title}
+              </h2>
+              <ul className="mt-2 flex flex-col gap-1">
+                {[...section.lessons]
+                  .sort((a, b) => a.order - b.order)
+                  .map((lesson) => {
+                    const isActive = lesson.id === activeLessonId;
+                    const isCompleted = completedLessonIds.has(lesson.id);
+
+                    return (
+                      <li key={lesson.id}>
+                        <div
+                          className={`flex items-center gap-3 rounded-md px-2 py-2 transition-colors ${
+                            isActive ? "bg-black text-white" : "hover:bg-black/5"
+                          }`}
+                        >
+                          <button
+                            type="button"
+                            onClick={(event) => toggleCompleted(lesson.id, event)}
+                            aria-label={
+                              isCompleted
+                                ? "Marcar lección como pendiente"
+                                : "Marcar lección como completada"
+                            }
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
+                              isCompleted
+                                ? "border-black bg-black text-white"
+                                : isActive
+                                  ? "border-white"
+                                  : "border-black/40"
+                            }`}
+                          >
+                            {isCompleted ? "✓" : ""}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveLessonId(lesson.id)}
+                            className="flex-1 text-left"
+                          >
+                            <span className="block text-sm font-medium leading-snug">
+                              {lesson.title}
+                            </span>
+                            {lesson.duration ? (
+                              <span
+                                className={`block text-xs ${
+                                  isActive ? "text-white/70" : "text-black/50"
+                                }`}
+                              >
+                                {formatDuration(lesson.duration)}
+                              </span>
+                            ) : null}
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
+              </ul>
+            </div>
+          ))}
+        </aside>
+
+        <main className="flex-1 overflow-y-auto p-8">
+          {activeLesson ? (
+            <div className="mx-auto max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-wide text-black/50">
+                Lección {activeIndex + 1} de {flatLessons.length}
+              </p>
+              <h2 className="mt-1 text-2xl font-bold tracking-tight">
+                {activeLesson.title}
+              </h2>
+
+              <div className="mt-6 flex flex-col gap-6">
+                {activeLesson.blocks.map((block) =>
+                  block.type === "video" ? (
+                    <VideoBlock key={block.id} block={block} />
+                  ) : (
+                    <TextBlock key={block.id} block={block} />
+                  )
+                )}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button variant="primary" onClick={completeAndContinue}>
+                  {isLastLesson ? "Completar curso" : "Completar y continuar →"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-black/70">
+              Este curso todavía no tiene lecciones.
+            </p>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

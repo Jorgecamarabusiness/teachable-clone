@@ -1,41 +1,9 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
 import { CourseBarChart } from "./CourseBarChart";
+import { courseStats, mesesEstadisticas as meses } from "@/lib/mock-data";
 
-const meses = ["Feb", "Mar", "Abr", "May", "Jun", "Jul"];
-
-const cursos = [
-  {
-    curso: "Domina el Diseño UX/UI desde Cero",
-    visualizaciones: 4832,
-    rewatches: 312,
-    ingresos: 9506,
-    comprasPorMes: [18, 24, 31, 27, 35, 42],
-  },
-  {
-    curso: "Marketing Digital para Emprendedores",
-    visualizaciones: 3120,
-    rewatches: 154,
-    ingresos: 6162,
-    comprasPorMes: [12, 15, 14, 20, 18, 21],
-  },
-  {
-    curso: "Introducción a la Programación Web",
-    visualizaciones: 6710,
-    rewatches: 487,
-    ingresos: 11210,
-    comprasPorMes: [22, 28, 33, 41, 38, 48],
-  },
-  {
-    curso: "Fotografía para Redes Sociales",
-    visualizaciones: 1954,
-    rewatches: 76,
-    ingresos: 2691,
-    comprasPorMes: [6, 8, 7, 10, 9, 12],
-  },
-];
-
-const estadisticas = cursos.map((curso) => ({
+const estadisticas = courseStats.map((curso) => ({
   ...curso,
   totalCompras: curso.comprasPorMes.reduce((a, b) => a + b, 0),
   data: curso.comprasPorMes.map((compras, index) => ({

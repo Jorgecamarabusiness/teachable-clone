@@ -1,38 +1,6 @@
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-
-const usuarios = [
-  {
-    nombre: "María González",
-    email: "maria.gonzalez@example.com",
-    gastado: 249,
-    alta: "12/01/2026",
-  },
-  {
-    nombre: "Carlos Ruiz",
-    email: "carlos.ruiz@example.com",
-    gastado: 89,
-    alta: "03/02/2026",
-  },
-  {
-    nombre: "Laura Fernández",
-    email: "laura.fernandez@example.com",
-    gastado: 512,
-    alta: "27/02/2026",
-  },
-  {
-    nombre: "Javier Torres",
-    email: "javier.torres@example.com",
-    gastado: 0,
-    alta: "15/03/2026",
-  },
-  {
-    nombre: "Ana Martín",
-    email: "ana.martin@example.com",
-    gastado: 178,
-    alta: "05/04/2026",
-  },
-];
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { userStats as usuarios } from "@/lib/mock-data";
 
 export default function UsuariosPage() {
   return (
