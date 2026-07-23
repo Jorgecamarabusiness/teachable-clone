@@ -30,12 +30,12 @@ export default async function CourseCurriculumPage({
   const [{ data: sectionsData }, { data: lessonsData }] = await Promise.all([
     supabase
       .from("sections")
-      .select("id, title, order_index")
+      .select("id, title, order_index, status")
       .eq("course_id", id)
       .order("order_index", { ascending: true }),
     supabase
       .from("lessons")
-      .select("id, section_id, title, order_index")
+      .select("id, section_id, title, order_index, status")
       .eq("course_id", id)
       .order("order_index", { ascending: true }),
   ]);
@@ -44,9 +44,14 @@ export default async function CourseCurriculumPage({
   const sections = (sectionsData ?? []).map((section) => ({
     id: section.id,
     title: section.title,
+    status: section.status === "draft" ? "draft" as const : "published" as const,
     lessons: lessons
       .filter((lesson) => lesson.section_id === section.id)
-      .map((lesson) => ({ id: lesson.id, title: lesson.title })),
+      .map((lesson) => ({
+        id: lesson.id,
+        title: lesson.title,
+        status: lesson.status === "draft" ? "draft" as const : "published" as const,
+      })),
   }));
 
   return (

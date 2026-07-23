@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { MAIN_COURSE_ID } from "@/lib/courses/mainCourse";
 
 export type LoginState = {
   error: string | null;
@@ -29,5 +30,5 @@ export async function loginAction(
     return { error: "Correo o contraseña incorrectos." };
   }
 
-  redirect("/cursos");
+  redirect(`/cursos/${MAIN_COURSE_ID}`);
 }

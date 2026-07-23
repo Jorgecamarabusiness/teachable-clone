@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { MAIN_COURSE_ID } from "@/lib/courses/mainCourse";
 
 export type RegisterState = {
   error: string | null;
@@ -51,5 +52,5 @@ export async function registerAction(
     return { error: profileError.message };
   }
 
-  redirect("/cursos");
+  redirect(`/cursos/${MAIN_COURSE_ID}`);
 }

@@ -9,27 +9,28 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   let name: string | null = null;
+  let isAdmin = false;
 
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name")
+      .select("name, is_admin")
       .eq("id", user.id)
       .single();
 
     name = profile?.name ?? null;
+    isAdmin = profile?.is_admin ?? false;
   }
 
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <span className="text-xl font-bold tracking-tight">Ivan Orgánico</span>
-
-        <nav className="hidden items-center gap-8 text-sm font-medium md:flex">
-          <Link href="/" className="hover:underline">
-            Inicio
-          </Link>
-        </nav>
+        <Link
+          href={isAdmin ? "/admin" : "/"}
+          className="text-xl font-bold tracking-tight"
+        >
+          Ivan Orgánico
+        </Link>
 
         {user ? (
           <div className="flex items-center gap-4">

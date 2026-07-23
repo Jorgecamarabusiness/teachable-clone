@@ -10,8 +10,8 @@ function NotFound() {
       <Header />
       <div className="mx-auto flex flex-1 flex-col items-center gap-4 px-6 py-24 text-center">
         <p className="text-sm text-muted-foreground">Curso no encontrado.</p>
-        <Link href="/cursos" className="text-sm font-medium hover:underline">
-          ← Volver a cursos
+        <Link href="/" className="text-sm font-medium hover:underline">
+          ← Volver al inicio
         </Link>
       </div>
       <Footer />
@@ -37,24 +37,30 @@ export default async function CursoDetallePage({
     return <NotFound />;
   }
 
-  if (course.status !== "published") {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    let isAdmin = false;
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single();
-      isAdmin = profile?.is_admin ?? false;
-    }
+  let isAdmin = false;
+  let hasPurchased = false;
 
-    if (!isAdmin) {
-      return <NotFound />;
-    }
+  if (user) {
+    const [{ data: profile }, { data: purchase }] = await Promise.all([
+      supabase.from("profiles").select("is_admin").eq("id", user.id).single(),
+      supabase
+        .from("purchases")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("course_id", course.id)
+        .maybeSingle(),
+    ]);
+
+    isAdmin = profile?.is_admin ?? false;
+    hasPurchased = Boolean(purchase);
+  }
+
+  if (course.status !== "published" && !isAdmin) {
+    return <NotFound />;
   }
 
   const longDescription = (course.long_description ?? "")
@@ -69,11 +75,7 @@ export default async function CursoDetallePage({
 
       <main className="flex-1">
         <section className="mx-auto max-w-4xl px-6 py-16">
-          <Link href="/cursos" className="text-sm font-medium hover:underline">
-            ← Volver a cursos
-          </Link>
-
-          <div className="mt-6 flex aspect-video w-full items-center justify-center rounded-lg border border-border bg-muted">
+          <div className="flex aspect-video w-full items-center justify-center rounded-lg border border-border bg-muted">
             <span className="text-sm font-medium text-muted-foreground">
               Imagen del curso
             </span>
@@ -110,10 +112,33 @@ export default async function CursoDetallePage({
             </div>
 
             <div className="h-fit rounded-lg border border-border p-6 lg:sticky lg:top-8">
-              <p className="text-sm text-muted-foreground">Precio</p>
-              <p className="mt-1 text-4xl font-bold">${course.price}</p>
+              {hasPurchased ? (
+                <>
+                  <p className="text-sm font-medium">Ya tienes acceso a este curso.</p>
+                  <Link
+                    href={`/cursos/${course.id}/aprender`}
+                    className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
+                  >
+                    Ir al curso →
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">Precio</p>
+                  <p className="mt-1 text-4xl font-bold">${course.price}</p>
 
-              <BuyCourseButton />
+                  {user ? (
+                    <BuyCourseButton courseId={course.id} />
+                  ) : (
+                    <Link
+                      href="/login"
+                      className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-foreground px-6 py-3 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
+                    >
+                      Inicia sesión para comprar
+                    </Link>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </section>

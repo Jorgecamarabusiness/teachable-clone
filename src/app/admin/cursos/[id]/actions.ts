@@ -49,7 +49,10 @@ export async function createLessonAction(
 
 type CreateSectionResult =
   | { ok: false; error: string }
-  | { ok: true; section: { id: string; title: string } };
+  | {
+      ok: true;
+      section: { id: string; title: string; status: "published" | "draft" };
+    };
 
 export async function createSectionAction(
   courseId: string
@@ -70,7 +73,7 @@ export async function createSectionAction(
       title: "Nueva sección",
       order_index: count ?? 0,
     })
-    .select("id, title")
+    .select("id, title, status")
     .single();
 
   if (error || !newSection) {
@@ -78,7 +81,14 @@ export async function createSectionAction(
   }
 
   revalidatePath(`/admin/cursos/${courseId}`);
-  return { ok: true, section: newSection };
+  return {
+    ok: true,
+    section: {
+      id: newSection.id,
+      title: newSection.title,
+      status: newSection.status === "draft" ? "draft" : "published",
+    },
+  };
 }
 
 export async function updateCourseTitleAction(
@@ -151,6 +161,101 @@ export async function updateSectionTitleAction(
     return { error: error.message };
   }
 
+  return { error: null };
+}
+
+export async function updateSectionStatusAction(
+  sectionId: string,
+  status: "published" | "draft"
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const adminCheck = await requireAdmin(supabase);
+  if (adminCheck.error) return adminCheck;
+
+  const { data: section, error } = await supabase
+    .from("sections")
+    .update({ status })
+    .eq("id", sectionId)
+    .select("course_id")
+    .single();
+
+  if (error || !section) {
+    return { error: error?.message ?? "No se pudo actualizar la sección." };
+  }
+
+  revalidatePath(`/admin/cursos/${section.course_id}`);
+  revalidatePath(`/cursos/${section.course_id}/aprender`);
+  return { error: null };
+}
+
+export async function updateLessonStatusAction(
+  lessonId: string,
+  status: "published" | "draft"
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const adminCheck = await requireAdmin(supabase);
+  if (adminCheck.error) return adminCheck;
+
+  const { data: lesson, error } = await supabase
+    .from("lessons")
+    .update({ status })
+    .eq("id", lessonId)
+    .select("course_id")
+    .single();
+
+  if (error || !lesson) {
+    return { error: error?.message ?? "No se pudo actualizar la lección." };
+  }
+
+  revalidatePath(`/admin/cursos/${lesson.course_id}`);
+  revalidatePath(`/cursos/${lesson.course_id}/aprender`);
+  return { error: null };
+}
+
+export async function deleteSectionAction(
+  sectionId: string,
+  courseId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const adminCheck = await requireAdmin(supabase);
+  if (adminCheck.error) return adminCheck;
+
+  const { error: lessonsError } = await supabase
+    .from("lessons")
+    .delete()
+    .eq("section_id", sectionId);
+
+  if (lessonsError) {
+    return { error: lessonsError.message };
+  }
+
+  const { error } = await supabase.from("sections").delete().eq("id", sectionId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/admin/cursos/${courseId}`);
+  revalidatePath(`/cursos/${courseId}/aprender`);
+  return { error: null };
+}
+
+export async function deleteLessonAction(
+  lessonId: string,
+  courseId: string
+): Promise<ActionResult> {
+  const supabase = await createClient();
+  const adminCheck = await requireAdmin(supabase);
+  if (adminCheck.error) return adminCheck;
+
+  const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath(`/admin/cursos/${courseId}`);
+  revalidatePath(`/cursos/${courseId}/aprender`);
   return { error: null };
 }
 

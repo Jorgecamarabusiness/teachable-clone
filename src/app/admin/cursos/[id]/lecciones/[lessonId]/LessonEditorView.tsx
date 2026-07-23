@@ -3,11 +3,31 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type KeyboardEvent } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { ContentBlock } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
+import { RowMenu } from "@/components/ui/RowMenu";
 import { AddContentPanel } from "@/components/lesson-blocks/AddContentPanel";
+import { BLOCK_DEFAULT_TITLES, BlockTypeIcon } from "@/components/lesson-blocks/blockMeta";
+import { TextBlockForm } from "@/components/lesson-blocks/forms/TextBlockForm";
+import { EmbedMediaForm } from "@/components/lesson-blocks/forms/EmbedMediaForm";
+import { VideoFileForm } from "@/components/lesson-blocks/forms/VideoFileForm";
 import {
   deleteLessonAction,
   updateLessonBlocksAction,
@@ -30,10 +50,132 @@ type LessonSummary = {
   blocks: ContentBlock[];
 };
 
-const BLOCK_LABELS: Record<ContentBlock["type"], string> = {
-  video: "Vídeo",
-  text: "Texto",
-};
+function BlockRow({
+  lessonId,
+  blocks,
+  block,
+  index,
+  onSaved,
+  onDelete,
+  isDeleting,
+}: {
+  lessonId: string;
+  blocks: ContentBlock[];
+  block: ContentBlock;
+  index: number;
+  onSaved: (blocks: ContentBlock[]) => void;
+  onDelete: () => void;
+  isDeleting: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function saveBlock(updatedBlock: ContentBlock) {
+    setIsSaving(true);
+    setError(null);
+
+    const newBlocks = blocks.map((item) =>
+      item.id === block.id ? updatedBlock : item
+    );
+    const result = await updateLessonBlocksAction(lessonId, newBlocks);
+
+    setIsSaving(false);
+
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+
+    onSaved(newBlocks);
+    setIsEditing(false);
+  }
+
+  if (isEditing) {
+    return (
+      <div ref={setNodeRef} style={style} className="rounded-md border border-border p-4">
+        {block.type === "text" ? (
+          <TextBlockForm
+            initialTitle={block.title ?? ""}
+            initialContent={block.content}
+            onCancel={() => setIsEditing(false)}
+            isSaving={isSaving}
+            error={error}
+            submitLabel="Guardar cambios"
+            onSubmit={(title, content) =>
+              saveBlock({ ...block, title, content })
+            }
+          />
+        ) : block.type === "video" ? (
+          <EmbedMediaForm
+            initialTitle={block.title ?? ""}
+            initialUrl={block.video_url}
+            onCancel={() => setIsEditing(false)}
+            isSaving={isSaving}
+            error={error}
+            submitLabel="Guardar cambios"
+            onSubmit={(title, video_url) =>
+              saveBlock({ ...block, title, video_url })
+            }
+          />
+        ) : (
+          <VideoFileForm
+            initialTitle={block.title ?? ""}
+            initialUrl={block.video_url}
+            onCancel={() => setIsEditing(false)}
+            isSaving={isSaving}
+            error={error}
+            submitLabel="Guardar cambios"
+            onSubmit={(title, video_url) =>
+              saveBlock({ ...block, title, video_url })
+            }
+          />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 rounded-md border border-border p-4"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        aria-label="Reordenar bloque"
+        className="cursor-grab touch-none px-1 text-muted-foreground active:cursor-grabbing"
+      >
+        ⠿
+      </button>
+
+      <span className="text-xs font-medium text-muted-foreground">
+        {index + 1}
+      </span>
+      <BlockTypeIcon type={block.type} className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <span className="flex-1 truncate text-sm font-medium">
+        {block.title ?? BLOCK_DEFAULT_TITLES[block.type]}
+      </span>
+
+      <RowMenu
+        onEdit={() => setIsEditing(true)}
+        onDelete={onDelete}
+        isDeleting={isDeleting}
+      />
+    </div>
+  );
+}
 
 export function LessonEditorView({
   course,
@@ -50,6 +192,10 @@ export function LessonEditorView({
   const [isAddPanelOpen, setAddPanelOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const blockSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
 
   const [lessonTitle, setLessonTitle] = useState(lesson.title);
   const [titleDraft, setTitleDraft] = useState(lesson.title);
@@ -81,6 +227,24 @@ export function LessonEditorView({
 
     setBlocks(newBlocks);
     router.refresh();
+  }
+
+  async function handleBlocksDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = blocks.findIndex((block) => block.id === active.id);
+    const newIndex = blocks.findIndex((block) => block.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(blocks, oldIndex, newIndex);
+    setBlocks(reordered);
+
+    setActionError(null);
+    const result = await updateLessonBlocksAction(lesson.id, reordered);
+    if (result.error) {
+      setActionError(result.error);
+    }
   }
 
   async function saveTitle() {
@@ -236,32 +400,30 @@ export function LessonEditorView({
               Todavía no hay contenido en esta lección.
             </p>
           ) : (
-            blocks.map((block, index) => (
-              <div
-                key={block.id}
-                className="flex items-center gap-3 rounded-md border border-border p-4"
+            <DndContext
+              id={`lesson-${lesson.id}-blocks`}
+              sensors={blockSensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleBlocksDragEnd}
+            >
+              <SortableContext
+                items={blocks.map((block) => block.id)}
+                strategy={verticalListSortingStrategy}
               >
-                <span className="text-xs font-medium text-muted-foreground">
-                  {index + 1}
-                </span>
-                <Badge variant="outline">{BLOCK_LABELS[block.type]}</Badge>
-                <span className="flex-1 text-sm font-medium">
-                  {block.title ??
-                    (block.type === "video"
-                      ? "Bloque de vídeo"
-                      : "Bloque de texto")}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteBlock(block.id)}
-                  disabled={isSaving}
-                  aria-label="Eliminar bloque"
-                  className="text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-                >
-                  ✕
-                </button>
-              </div>
-            ))
+                {blocks.map((block, index) => (
+                  <BlockRow
+                    key={block.id}
+                    lessonId={lesson.id}
+                    blocks={blocks}
+                    block={block}
+                    index={index}
+                    onSaved={handleBlocksSaved}
+                    onDelete={() => handleDeleteBlock(block.id)}
+                    isDeleting={isSaving}
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
           )}
         </div>
 

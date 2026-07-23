@@ -1,24 +1,27 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import type { ContentBlock } from "@/types";
-import { Button } from "@/components/ui/Button";
 import { updateLessonBlocksAction } from "@/app/admin/cursos/[id]/lecciones/[lessonId]/actions";
+import { BlockTypeIcon, BLOCK_LABELS } from "@/components/lesson-blocks/blockMeta";
+import { TextBlockForm } from "@/components/lesson-blocks/forms/TextBlockForm";
+import { EmbedMediaForm } from "@/components/lesson-blocks/forms/EmbedMediaForm";
+import { VideoFileForm } from "@/components/lesson-blocks/forms/VideoFileForm";
 
-type PanelStep = "choose" | "video" | "text";
+type PanelStep = "choose" | "video" | "video_file" | "text";
 
 const CONTENT_TYPES: Array<{
-  key: "video" | "text" | "pdf" | "audio" | "image" | "quiz";
+  key: "video_file" | "video" | "text" | "pdf" | "audio" | "image" | "quiz";
   label: string;
-  icon: string;
   enabled: boolean;
 }> = [
-  { key: "video", label: "Vídeo", icon: "▶", enabled: true },
-  { key: "text", label: "Texto", icon: "¶", enabled: true },
-  { key: "pdf", label: "PDF", icon: "▤", enabled: false },
-  { key: "audio", label: "Audio", icon: "♪", enabled: false },
-  { key: "image", label: "Imagen/Banner", icon: "▥", enabled: false },
-  { key: "quiz", label: "Quiz", icon: "?", enabled: false },
+  { key: "video_file", label: BLOCK_LABELS.video_file, enabled: true },
+  { key: "video", label: BLOCK_LABELS.video, enabled: true },
+  { key: "text", label: BLOCK_LABELS.text, enabled: true },
+  { key: "pdf", label: "PDF", enabled: false },
+  { key: "audio", label: "Audio", enabled: false },
+  { key: "image", label: "Imagen/Banner", enabled: false },
+  { key: "quiz", label: "Quiz", enabled: false },
 ];
 
 export function AddContentPanel({
@@ -33,14 +36,10 @@ export function AddContentPanel({
   onBlocksSaved: (blocks: ContentBlock[]) => void;
 }) {
   const [step, setStep] = useState<PanelStep>("choose");
-  const [videoTitle, setVideoTitle] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [textTitle, setTextTitle] = useState("");
-  const [textContent, setTextContent] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  async function persist(newBlocks: ContentBlock[]): Promise<boolean> {
+  async function persist(newBlocks: ContentBlock[]) {
     setIsSaving(true);
     setActionError(null);
 
@@ -50,41 +49,11 @@ export function AddContentPanel({
 
     if (result.error) {
       setActionError(result.error);
-      return false;
+      return;
     }
 
     onBlocksSaved(newBlocks);
-    return true;
-  }
-
-  async function handleAddVideo(event: FormEvent) {
-    event.preventDefault();
-    if (!videoTitle.trim() || !videoUrl.trim()) return;
-
-    const newBlock: ContentBlock = {
-      id: crypto.randomUUID(),
-      type: "video",
-      title: videoTitle.trim(),
-      video_url: videoUrl.trim(),
-    };
-
-    const ok = await persist([...blocks, newBlock]);
-    if (ok) onClose();
-  }
-
-  async function handleAddText(event: FormEvent) {
-    event.preventDefault();
-    if (!textTitle.trim() || !textContent.trim()) return;
-
-    const newBlock: ContentBlock = {
-      id: crypto.randomUUID(),
-      type: "text",
-      title: textTitle.trim(),
-      content: textContent.trim(),
-    };
-
-    const ok = await persist([...blocks, newBlock]);
-    if (ok) onClose();
+    onClose();
   }
 
   return (
@@ -110,7 +79,11 @@ export function AddContentPanel({
                 type="button"
                 disabled={!type.enabled}
                 onClick={() => {
-                  if (type.key === "video" || type.key === "text") {
+                  if (
+                    type.key === "video" ||
+                    type.key === "video_file" ||
+                    type.key === "text"
+                  ) {
                     setStep(type.key);
                   }
                 }}
@@ -120,7 +93,11 @@ export function AddContentPanel({
                     : "flex cursor-not-allowed flex-col items-center gap-1 rounded-md border border-border p-6 text-sm font-medium text-muted-foreground opacity-50"
                 }
               >
-                <span className="text-xl">{type.icon}</span>
+                {type.key === "video" || type.key === "video_file" || type.key === "text" ? (
+                  <BlockTypeIcon type={type.key} className="h-6 w-6" />
+                ) : (
+                  <span className="text-xl">▤</span>
+                )}
                 {type.label}
                 {!type.enabled ? (
                   <span className="text-[10px] font-normal uppercase tracking-wide">
@@ -134,9 +111,9 @@ export function AddContentPanel({
       )}
 
       {step === "video" && (
-        <form onSubmit={handleAddVideo} className="max-w-md">
+        <>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Añadir vídeo</h3>
+            <h3 className="font-semibold">Añadir {BLOCK_LABELS.video.toLowerCase()}</h3>
             <button
               type="button"
               onClick={onClose}
@@ -147,58 +124,63 @@ export function AddContentPanel({
             </button>
           </div>
 
-          <label className="mt-6 block text-xs font-medium text-muted-foreground">
-            Título
-            <input
-              type="text"
-              value={videoTitle}
-              onChange={(event) => setVideoTitle(event.target.value)}
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-foreground"
-              placeholder="Ej. Bienvenida al curso"
+          <div className="mt-6">
+            <EmbedMediaForm
+              onCancel={onClose}
+              isSaving={isSaving}
+              error={actionError}
+              submitLabel="Añadir"
+              onSubmit={(title, url) =>
+                persist([
+                  ...blocks,
+                  { id: crypto.randomUUID(), type: "video", title, video_url: url },
+                ])
+              }
             />
-          </label>
-
-          <label className="mt-4 block text-xs font-medium text-muted-foreground">
-            URL del vídeo
-            <input
-              type="url"
-              value={videoUrl}
-              onChange={(event) => setVideoUrl(event.target.value)}
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-foreground"
-              placeholder="https://..."
-            />
-          </label>
-
-          {actionError ? (
-            <p className="mt-4 text-xs font-medium text-muted-foreground">
-              Error: {actionError}
-            </p>
-          ) : null}
-
-          <div className="mt-6 flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={isSaving}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={!videoTitle.trim() || !videoUrl.trim() || isSaving}
-            >
-              {isSaving ? "Guardando..." : "Añadir"}
-            </Button>
           </div>
-        </form>
+        </>
+      )}
+
+      {step === "video_file" && (
+        <>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Añadir {BLOCK_LABELS.video_file.toLowerCase()}</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar"
+              className="text-lg leading-none text-muted-foreground transition-colors hover:text-foreground"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mt-6">
+            <VideoFileForm
+              onCancel={onClose}
+              isSaving={isSaving}
+              error={actionError}
+              submitLabel="Añadir"
+              onSubmit={(title, url) =>
+                persist([
+                  ...blocks,
+                  {
+                    id: crypto.randomUUID(),
+                    type: "video_file",
+                    title,
+                    video_url: url,
+                  },
+                ])
+              }
+            />
+          </div>
+        </>
       )}
 
       {step === "text" && (
-        <form onSubmit={handleAddText} className="max-w-md">
+        <>
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Añadir texto</h3>
+            <h3 className="font-semibold">Añadir {BLOCK_LABELS.text.toLowerCase()}</h3>
             <button
               type="button"
               onClick={onClose}
@@ -209,52 +191,21 @@ export function AddContentPanel({
             </button>
           </div>
 
-          <label className="mt-6 block text-xs font-medium text-muted-foreground">
-            Título
-            <input
-              type="text"
-              value={textTitle}
-              onChange={(event) => setTextTitle(event.target.value)}
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-foreground"
-              placeholder="Ej. Resumen de la lección"
+          <div className="mt-6">
+            <TextBlockForm
+              onCancel={onClose}
+              isSaving={isSaving}
+              error={actionError}
+              submitLabel="Añadir"
+              onSubmit={(title, content) =>
+                persist([
+                  ...blocks,
+                  { id: crypto.randomUUID(), type: "text", title, content },
+                ])
+              }
             />
-          </label>
-
-          <label className="mt-4 block text-xs font-medium text-muted-foreground">
-            Contenido
-            <textarea
-              value={textContent}
-              onChange={(event) => setTextContent(event.target.value)}
-              rows={4}
-              className="mt-1 w-full rounded-md border border-border px-3 py-2 text-sm text-foreground"
-              placeholder="Escribe el contenido de este bloque..."
-            />
-          </label>
-
-          {actionError ? (
-            <p className="mt-4 text-xs font-medium text-muted-foreground">
-              Error: {actionError}
-            </p>
-          ) : null}
-
-          <div className="mt-6 flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={isSaving}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={!textTitle.trim() || !textContent.trim() || isSaving}
-            >
-              {isSaving ? "Guardando..." : "Añadir"}
-            </Button>
           </div>
-        </form>
+        </>
       )}
     </div>
   );

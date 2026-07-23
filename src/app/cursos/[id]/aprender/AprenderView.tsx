@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import type { Lesson, Section } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { VideoBlock } from "@/components/lesson-blocks/VideoBlock";
+import { VideoFileBlock } from "@/components/lesson-blocks/VideoFileBlock";
 import { TextBlock } from "@/components/lesson-blocks/TextBlock";
+import { BlockTypeIcon } from "@/components/lesson-blocks/blockMeta";
 
 type CourseWithContent = {
   id: string;
@@ -153,22 +155,34 @@ export function AprenderView({
                           <button
                             type="button"
                             onClick={() => setActiveLessonId(lesson.id)}
-                            className="flex-1 text-left"
+                            className="flex flex-1 items-center gap-2 text-left"
                           >
-                            <span className="block text-sm font-medium leading-snug">
-                              {lesson.title}
-                            </span>
-                            {lesson.duration ? (
-                              <span
-                                className={`block text-xs ${
+                            {lesson.blocks[0] ? (
+                              <BlockTypeIcon
+                                type={lesson.blocks[0].type}
+                                className={`h-4 w-4 shrink-0 ${
                                   isActive
                                     ? "text-background/70"
                                     : "text-muted-foreground"
                                 }`}
-                              >
-                                {formatDuration(lesson.duration)}
-                              </span>
+                              />
                             ) : null}
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium leading-snug">
+                                {lesson.title}
+                              </span>
+                              {lesson.duration ? (
+                                <span
+                                  className={`block text-xs ${
+                                    isActive
+                                      ? "text-background/70"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {formatDuration(lesson.duration)}
+                                </span>
+                              ) : null}
+                            </span>
                           </button>
                         </div>
                       </li>
@@ -190,13 +204,15 @@ export function AprenderView({
               </h2>
 
               <div className="mt-6 flex flex-col gap-6">
-                {activeLesson.blocks.map((block) =>
-                  block.type === "video" ? (
-                    <VideoBlock key={block.id} block={block} />
-                  ) : (
-                    <TextBlock key={block.id} block={block} />
-                  )
-                )}
+                {activeLesson.blocks.map((block) => {
+                  if (block.type === "video") {
+                    return <VideoBlock key={block.id} block={block} />;
+                  }
+                  if (block.type === "video_file") {
+                    return <VideoFileBlock key={block.id} block={block} />;
+                  }
+                  return <TextBlock key={block.id} block={block} />;
+                })}
               </div>
 
               <div className="mt-6 flex justify-end">

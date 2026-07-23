@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type KeyboardEvent } from "react";
 import {
@@ -19,27 +18,33 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/Button";
+import { RowMenu } from "@/components/ui/RowMenu";
+import type { CourseStatus } from "@/types";
 import { updateLessonTitleAction } from "./lecciones/[lessonId]/actions";
 import {
   createLessonAction,
   createSectionAction,
+  deleteLessonAction,
+  deleteSectionAction,
   reorderLessonsAction,
   reorderSectionsAction,
   updateCourseStatusAction,
   updateCourseTitleAction,
+  updateLessonStatusAction,
+  updateSectionStatusAction,
   updateSectionTitleAction,
 } from "./actions";
-
-type CourseStatus = "published" | "draft";
 
 type LessonSummary = {
   id: string;
   title: string;
+  status: CourseStatus;
 };
 
 type SectionSummary = {
   id: string;
   title: string;
+  status: CourseStatus;
   lessons: LessonSummary[];
 };
 
@@ -49,16 +54,45 @@ type CourseSummary = {
   status: CourseStatus;
 };
 
+function StatusToggle({
+  status,
+  onToggle,
+  disabled,
+}: {
+  status: CourseStatus;
+  onToggle: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled}
+      className={`inline-flex shrink-0 items-center rounded-full px-3 py-1 text-xs font-semibold transition-colors disabled:opacity-50 ${
+        status === "published"
+          ? "bg-accent text-accent-foreground hover:bg-accent/90"
+          : "border border-border text-muted-foreground hover:bg-muted"
+      }`}
+    >
+      {status === "published" ? "Publicado" : "Borrador"}
+    </button>
+  );
+}
+
 function LessonRow({
   lesson,
   courseId,
   sectionId,
   onTitleSaved,
+  onStatusSaved,
+  onDeleted,
 }: {
   lesson: LessonSummary;
   courseId: string;
   sectionId: string;
   onTitleSaved: (sectionId: string, lessonId: string, title: string) => void;
+  onStatusSaved: (sectionId: string, lessonId: string, status: CourseStatus) => void;
+  onDeleted: (sectionId: string, lessonId: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: lesson.id });
@@ -72,6 +106,39 @@ function LessonRow({
   const [titleDraft, setTitleDraft] = useState(lesson.title);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function toggleStatus() {
+    const nextStatus: CourseStatus =
+      lesson.status === "published" ? "draft" : "published";
+    setIsTogglingStatus(true);
+    const result = await updateLessonStatusAction(lesson.id, nextStatus);
+    setIsTogglingStatus(false);
+
+    if (result.error) return;
+    onStatusSaved(sectionId, lesson.id, nextStatus);
+  }
+
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      "¿Seguro que quieres eliminar esta lección? Esta acción no se puede deshacer."
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    const result = await deleteLessonAction(lesson.id, courseId);
+    setIsDeleting(false);
+
+    if (result.error) {
+      setDeleteError(result.error);
+      return;
+    }
+
+    onDeleted(sectionId, lesson.id);
+  }
 
   async function saveTitle() {
     const trimmed = titleDraft.trim();
@@ -143,14 +210,25 @@ function LessonRow({
             Error: {titleError}
           </p>
         ) : null}
+        {deleteError ? (
+          <p className="mt-1 text-xs font-medium text-muted-foreground">
+            Error: {deleteError}
+          </p>
+        ) : null}
       </div>
 
-      <Link
-        href={`/admin/cursos/${courseId}/lecciones/${lesson.id}`}
-        className="shrink-0 text-xs font-medium text-muted-foreground hover:underline"
-      >
-        Editar contenido →
-      </Link>
+      <StatusToggle
+        status={lesson.status}
+        onToggle={toggleStatus}
+        disabled={isTogglingStatus}
+      />
+
+      <RowMenu
+        editHref={`/admin/cursos/${courseId}/lecciones/${lesson.id}`}
+        editLabel="Editar contenido"
+        onDelete={handleDelete}
+        isDeleting={isDeleting}
+      />
     </div>
   );
 }
@@ -159,13 +237,25 @@ function SectionRow({
   section,
   courseId,
   onTitleSaved,
+  onStatusSaved,
+  onDeleted,
   onLessonTitleSaved,
+  onLessonStatusSaved,
+  onLessonDeleted,
   onLessonDragEnd,
 }: {
   section: SectionSummary;
   courseId: string;
   onTitleSaved: (sectionId: string, title: string) => void;
+  onStatusSaved: (sectionId: string, status: CourseStatus) => void;
+  onDeleted: (sectionId: string) => void;
   onLessonTitleSaved: (sectionId: string, lessonId: string, title: string) => void;
+  onLessonStatusSaved: (
+    sectionId: string,
+    lessonId: string,
+    status: CourseStatus
+  ) => void;
+  onLessonDeleted: (sectionId: string, lessonId: string) => void;
   onLessonDragEnd: (sectionId: string, event: DragEndEvent) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -181,10 +271,43 @@ function SectionRow({
   const [titleDraft, setTitleDraft] = useState(section.title);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const lessonSensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
+
+  async function toggleStatus() {
+    const nextStatus: CourseStatus =
+      section.status === "published" ? "draft" : "published";
+    setIsTogglingStatus(true);
+    const result = await updateSectionStatusAction(section.id, nextStatus);
+    setIsTogglingStatus(false);
+
+    if (result.error) return;
+    onStatusSaved(section.id, nextStatus);
+  }
+
+  async function handleDelete() {
+    const confirmed = window.confirm(
+      "¿Seguro que quieres eliminar este capítulo? Se eliminarán también todas sus lecciones. Esta acción no se puede deshacer."
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+    const result = await deleteSectionAction(section.id, courseId);
+    setIsDeleting(false);
+
+    if (result.error) {
+      setDeleteError(result.error);
+      return;
+    }
+
+    onDeleted(section.id);
+  }
 
   async function saveTitle() {
     const trimmed = titleDraft.trim();
@@ -267,8 +390,28 @@ function SectionRow({
               Error: {titleError}
             </p>
           ) : null}
+          {deleteError ? (
+            <p className="mt-1 text-xs font-medium text-muted-foreground">
+              Error: {deleteError}
+            </p>
+          ) : null}
         </div>
+
+        <StatusToggle
+          status={section.status}
+          onToggle={toggleStatus}
+          disabled={isTogglingStatus}
+        />
+
+        <RowMenu onDelete={handleDelete} isDeleting={isDeleting} />
       </div>
+
+      {section.status === "draft" ? (
+        <p className="border-t border-border bg-muted px-4 py-2 text-xs text-muted-foreground">
+          Este capítulo está en borrador: sus lecciones no son visibles para los alumnos,
+          aunque estén publicadas individualmente.
+        </p>
+      ) : null}
 
       {isOpen && (
         <div className="border-t border-border">
@@ -278,6 +421,7 @@ function SectionRow({
             </p>
           ) : (
             <DndContext
+              id={`section-${section.id}-lessons`}
               sensors={lessonSensors}
               collisionDetection={closestCenter}
               onDragEnd={(event) => onLessonDragEnd(section.id, event)}
@@ -293,6 +437,8 @@ function SectionRow({
                     courseId={courseId}
                     sectionId={section.id}
                     onTitleSaved={onLessonTitleSaved}
+                    onStatusSaved={onLessonStatusSaved}
+                    onDeleted={onLessonDeleted}
                   />
                 ))}
               </SortableContext>
@@ -301,9 +447,9 @@ function SectionRow({
 
           <form
             action={createLessonAction.bind(null, section.id, courseId)}
-            className="border-t border-border px-6 py-4"
+            className="border-t border-border px-6 py-3"
           >
-            <Button type="submit" variant="outline">
+            <Button type="submit" variant="outline" size="sm">
               + Nueva lección
             </Button>
           </form>
@@ -410,6 +556,14 @@ export function CurriculumEditor({
     );
   }
 
+  function handleSectionStatusSaved(sectionId: string, status: CourseStatus) {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId ? { ...section, status } : section
+      )
+    );
+  }
+
   function handleLessonTitleSaved(
     sectionId: string,
     lessonId: string,
@@ -423,6 +577,42 @@ export function CurriculumEditor({
               lessons: section.lessons.map((lesson) =>
                 lesson.id === lessonId ? { ...lesson, title } : lesson
               ),
+            }
+          : section
+      )
+    );
+  }
+
+  function handleLessonStatusSaved(
+    sectionId: string,
+    lessonId: string,
+    status: CourseStatus
+  ) {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lessons: section.lessons.map((lesson) =>
+                lesson.id === lessonId ? { ...lesson, status } : lesson
+              ),
+            }
+          : section
+      )
+    );
+  }
+
+  function handleSectionDeleted(sectionId: string) {
+    setSections((prev) => prev.filter((section) => section.id !== sectionId));
+  }
+
+  function handleLessonDeleted(sectionId: string, lessonId: string) {
+    setSections((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              lessons: section.lessons.filter((lesson) => lesson.id !== lessonId),
             }
           : section
       )
@@ -525,6 +715,7 @@ export function CurriculumEditor({
           </p>
         ) : (
           <DndContext
+            id="course-sections"
             sensors={sectionSensors}
             collisionDetection={closestCenter}
             onDragEnd={handleSectionDragEnd}
@@ -539,7 +730,11 @@ export function CurriculumEditor({
                   section={section}
                   courseId={course.id}
                   onTitleSaved={handleSectionTitleSaved}
+                  onStatusSaved={handleSectionStatusSaved}
+                  onDeleted={handleSectionDeleted}
                   onLessonTitleSaved={handleLessonTitleSaved}
+                  onLessonStatusSaved={handleLessonStatusSaved}
+                  onLessonDeleted={handleLessonDeleted}
                   onLessonDragEnd={handleLessonDragEnd}
                 />
               ))}
@@ -551,6 +746,7 @@ export function CurriculumEditor({
           <Button
             type="button"
             variant="outline"
+            size="sm"
             onClick={handleAddSection}
             disabled={isAddingSection}
           >
