@@ -8,10 +8,7 @@ import { MAIN_COURSE_ID } from "@/lib/courses/mainCourse";
 export async function POST(request: NextRequest) {
   const body = await request.text();
 
-  const rawSecret = Buffer.from(
-    process.env.WHOP_WEBHOOK_SECRET!.replace(/^ws_/, ""),
-    "hex"
-  );
+  const rawSecret = Buffer.from(process.env.WHOP_WEBHOOK_SECRET!, "utf8");
   const wh = new Webhook(rawSecret, { format: "raw" });
 
   let event: { data?: { id?: string }; id?: string };
@@ -24,8 +21,6 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Firma inválida" }, { status: 400 });
   }
-
-  console.log("Whop webhook event:", JSON.stringify(event));
 
   const membershipId = event.data?.id ?? event.id;
   if (!membershipId) {
